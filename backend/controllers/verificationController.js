@@ -18,7 +18,7 @@ const getPendingStudents = async (req, res, next) => {
 const getAllStudents = async (req, res, next) => {
   try {
     const students = await User.find({ role: 'student' })
-      .select('name email rollNumber department phone isVerified createdAt');
+      .select('image name email rollNumber department phone isVerified createdAt');
 
     res.status(200).json({ success: true, count: students.length, data: { students } });
   } catch (error) { next(error); }

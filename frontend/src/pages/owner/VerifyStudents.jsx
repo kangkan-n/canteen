@@ -28,10 +28,11 @@ const VerifyStudents = () => {
       ) : (
         <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
           <table className="data-table">
-            <thead><tr><th>Name</th><th>Email</th><th>Roll No</th><th>Dept</th><th>Phone</th>{tab === 'pending' && <th>Token</th>}<th>Status</th><th>Registered</th></tr></thead>
+            <thead><tr><th>Image</th><th>Name</th><th>Email</th><th>Roll No</th><th>Dept</th><th>Phone</th>{tab === 'pending' && <th>Token</th>}<th>Status</th><th>Registered</th></tr></thead>
             <tbody>
               {list.map(s => (
                 <tr key={s._id}>
+                  <td><img src={s.image} alt={s.name} style={{ width: 40, height: 40, borderRadius: '50%' }} /></td>
                   <td><strong>{s.name}</strong></td>
                   <td>{s.email}</td>
                   <td>{s.rollNumber || '-'}</td>
