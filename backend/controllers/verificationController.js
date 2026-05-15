@@ -6,7 +6,7 @@ const User = require('../models/User');
 const getPendingStudents = async (req, res, next) => {
   try {
     const students = await User.find({ role: 'student', isVerified: false })
-      .select('name email rollNumber department phone verificationToken createdAt');
+      .select('image name email rollNumber department phone verificationToken createdAt');
 
     res.status(200).json({ success: true, count: students.length, data: { students } });
   } catch (error) { next(error); }
