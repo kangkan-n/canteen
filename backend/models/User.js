@@ -56,7 +56,7 @@ const userSchema = new mongoose.Schema({
   verificationToken: {
     type: String
   },
-  profileImage: {
+  image: {
     type: String,
     default: ''
   }

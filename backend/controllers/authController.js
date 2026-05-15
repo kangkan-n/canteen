@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const { generateJWT, generateVerificationToken } = require('../utils/generateToken');
+const uploadFile = require('../services/imgStorageService');
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -15,6 +16,16 @@ const register = async (req, res, next) => {
         success: false,
         message: 'User with this email already exists'
       });
+    }
+
+    let profileImageUrl = null;
+    if (req.file) {
+      // Upload the buffer to your storage service (Firebase/Cloudinary/etc)
+      const uploadResult = await uploadFile(req.file.buffer, req.file.originalname || `image-${Date.now()}.png`);
+      profileImageUrl = uploadResult.url;
+    } else if (req.body.photoBase64) {
+      const uploadResult = await uploadFile(req.body.photoBase64);
+      profileImageUrl = uploadResult.url;
     }
 
     // Allow student and canteen owner registration
@@ -76,7 +87,7 @@ const register = async (req, res, next) => {
       role: userRole,
       verificationToken,
       isVerified,
-      profileImage: userRole === 'student' ? photoBase64 : ''
+      image: userRole === 'student' ? profileImageUrl : ''
     });
 
     // Generate JWT
