@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
+const { initializeFirebase } = require('./config/firebase');
 const errorHandler = require('./middleware/errorHandler');
 
 // Load env vars
@@ -13,6 +14,9 @@ dotenv.config();
 
 // Connect to database
 connectDB();
+
+// Initialize Firebase
+initializeFirebase();
 
 const app = express();
 const server = http.createServer(app);

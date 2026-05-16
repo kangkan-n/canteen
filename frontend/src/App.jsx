@@ -5,6 +5,7 @@ import { CartProvider } from './context/CartContext';
 import Sidebar from './components/common/Sidebar';
 import Topbar from './components/common/Topbar';
 import CartSidebar from './components/common/CartSidebar';
+import NotificationManager from './components/common/NotificationManager';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import VerifyAccount from './pages/auth/VerifyAccount';
@@ -48,6 +49,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
+          <NotificationManager />
           <Toaster position="top-right" toastOptions={{ style: { background: '#1a1a2e', color: '#f5f5f5', border: '1px solid rgba(255,255,255,0.1)' } }} />
           <Routes>
               <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />

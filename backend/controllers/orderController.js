@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const MenuItem = require('../models/MenuItem');
 const User = require('../models/User');
+const { sendNotificationToUser, sendNotificationToRole } = require('../utils/notificationHelper');
 
 // @desc    Place a new order
 // @route   POST /api/orders
@@ -68,6 +69,13 @@ const placeOrder = async (req, res, next) => {
 
     // Populate the order for response
     await order.populate('student', 'name email rollNumber');
+
+    // Notify canteen owner about new order
+    sendNotificationToRole('canteenOwner', {
+      title: 'New Order Placed! 🍔',
+      body: `New order from ${req.user.name} for ₹${totalAmount}`,
+      data: { orderId: order._id.toString(), type: 'NEW_ORDER' }
+    });
 
     res.status(201).json({
       success: true,
@@ -222,6 +230,12 @@ const updateOrderStatus = async (req, res, next) => {
       delivered: 'Your order has been delivered! 😋'
     };
 
+    sendNotificationToUser(order.student, {
+      title: 'Order Status Updated',
+      body: statusMessages[status] || `Your order status is now ${status}`,
+      data: { orderId: order._id.toString(), type: 'STATUS_UPDATE', status }
+    });
+
     res.status(200).json({
       success: true,
       message: `Order status updated to "${status}"`,
@@ -296,6 +310,24 @@ const cancelOrder = async (req, res, next) => {
     });
 
     await order.save();
+
+    // Notify relevant party about cancellation
+    const isOwner = req.user.role === 'canteenOwner';
+    if (isOwner) {
+      // Notify student if owner cancels
+      sendNotificationToUser(order.student, {
+        title: 'Order Cancelled ❌',
+        body: `Your order was cancelled by the canteen. Reason: ${order.cancellationReason}`,
+        data: { orderId: order._id.toString(), type: 'ORDER_CANCELLED' }
+      });
+    } else {
+      // Notify owner if student cancels
+      sendNotificationToRole('canteenOwner', {
+        title: 'Order Cancelled ❌',
+        body: `Order for ₹${order.totalAmount} was cancelled by ${req.user.name}`,
+        data: { orderId: order._id.toString(), type: 'ORDER_CANCELLED' }
+      });
+    }
 
     res.status(200).json({
       success: true,
