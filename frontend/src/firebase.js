@@ -15,13 +15,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-export const requestForToken = async () => {
+export const requestForToken = async (swRegistration = null) => {
   try {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      const token = await getToken(messaging, { 
-        vapidKey: 'BDeolOV8jo_mpaBV1qK8XbaM8DNeitgomNynsWzqHDcPKpTVH1AG7m3ZdTaw20MP7oq2Bo0nhzSJxj5BL09gy5U' 
-      });
+      const options = {
+        vapidKey: 'BDeolOV8jo_mpaBV1qK8XbaM8DNeitgomNynsWzqHDcPKpTVH1AG7m3ZdTaw20MP7oq2Bo0nhzSJxj5BL09gy5U'
+      };
+      if (swRegistration) options.serviceWorkerRegistration = swRegistration;
+
+      const token = await getToken(messaging, options);
       if (token) {
         console.log('FCM Token:', token);
         return token;
@@ -34,12 +37,6 @@ export const requestForToken = async () => {
   }
 };
 
-export const onMessageListener = () =>
-  new Promise((resolve) => {
-    onMessage(messaging, (payload) => {
-      console.log("Payload", payload);
-      resolve(payload);
-    });
-  });
+
 
 export { messaging };

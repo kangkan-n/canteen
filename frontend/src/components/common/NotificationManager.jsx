@@ -1,14 +1,28 @@
 import { useEffect } from 'react';
-import { requestForToken, onMessageListener } from '../../firebase';
+import { requestForToken, messaging } from '../../firebase';
+import { onMessage } from 'firebase/messaging';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const NotificationManager = () => {
+  const { user } = useAuth();
+
   useEffect(() => {
     const setupNotifications = async () => {
       try {
-        const token = await requestForToken();
-        if (token) {
+        let swReg = null;
+        if ('serviceWorker' in navigator) {
+          try {
+            swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            console.log('Service Worker registered:', swReg);
+          } catch (swErr) {
+            console.error('Service Worker registration failed:', swErr);
+          }
+        }
+
+        const token = await requestForToken(swReg);
+        if (token && user) {
           // Send token to backend
           const userToken = localStorage.getItem('token');
           if (userToken) {
@@ -29,23 +43,28 @@ const NotificationManager = () => {
       }
     };
 
-    setupNotifications();
+    if (user) {
+      setupNotifications();
+    }
 
     // Listen for foreground messages
-    const unsubscribe = onMessageListener().then((payload) => {
-      toast.success(`${payload.notification.title}: ${payload.notification.body}`, {
-        duration: 6000,
-        position: 'top-right',
+    let unsubscribe = () => {};
+    if (messaging) {
+      unsubscribe = onMessage(messaging, (payload) => {
+        toast.success(`${payload.notification?.title || 'Notification'}: ${payload.notification?.body || ''}`, {
+          duration: 6000,
+          position: 'top-right',
+        });
+        console.log('Foreground notification received:', payload);
       });
-      console.log('Foreground notification received:', payload);
-    }).catch((err) => console.log('failed: ', err));
+    }
 
     return () => {
-      // Clean up if necessary
+      unsubscribe();
     };
-  }, []);
+  }, [user]);
 
-  return null; // This component doesn't render anything
+  return null;
 };
 
 export default NotificationManager;
